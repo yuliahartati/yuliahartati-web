@@ -279,57 +279,98 @@ button {
 ========================= */
 
 .areas-section {
-  padding: 0 28px;
+  padding: 0 28px 28px;
   background: #0a0e11;
 }
 
 .areas-grid {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
 .area-card {
+  position: relative;
   min-height: 310px;
   padding: 22px;
-  border: 1px solid var(--line);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(30, 41, 47, 0.9),
-      rgba(12, 17, 20, 0.98)
-    );
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
+  overflow: hidden;
+
+  border: 1px solid var(--line);
+
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease;
 }
 
-.area-card:nth-child(2) {
+.area-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* subtle dark overlay */
+.area-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
   background:
     linear-gradient(
       180deg,
-      rgba(30, 37, 41, 0.9),
-      rgba(12, 17, 20, 0.98)
+      rgba(5, 9, 12, 0.18),
+      rgba(5, 9, 12, 0.58)
     );
+
+  pointer-events: none;
 }
 
-.area-card:nth-child(3) {
+.area-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* individual tonal variation */
+
+.area-card:nth-child(2)::after {
   background:
     linear-gradient(
       180deg,
-      rgba(25, 34, 39, 0.95),
-      rgba(12, 17, 20, 0.98)
+      rgba(8, 12, 15, 0.22),
+      rgba(8, 12, 15, 0.62)
     );
 }
 
-.area-card:nth-child(4) {
+.area-card:nth-child(3)::after {
   background:
     linear-gradient(
       180deg,
-      rgba(25, 31, 34, 0.95),
-      rgba(12, 17, 20, 0.98)
+      rgba(7, 11, 14, 0.24),
+      rgba(7, 11, 14, 0.66)
     );
 }
+
+.area-card:nth-child(4)::after {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 10, 13, 0.28),
+      rgba(7, 10, 13, 0.68)
+    );
+}
+
+/* number */
 
 .area-number {
   color: #858987;
@@ -337,43 +378,62 @@ button {
   letter-spacing: 0.2em;
 }
 
+/* icon */
+
 .area-icon {
-  margin-top: 28px;
-  font-size: 29px;
+  margin-top: auto;
+  padding-top: 34px;
+
   color: #d2d3cf;
 }
 
+/* content */
+
+.area-content {
+  margin-top: 28px;
+}
+
 .area-content h2 {
-  margin: 12px 0 5px;
+  margin: 0 0 5px;
+
   font-family: Georgia, "Times New Roman", serif;
   font-size: 27px;
+  line-height: 1.1;
   font-weight: 400;
 }
 
-.area-content > span {
+.area-subtitle {
   color: #a5a7a6;
   font-size: 12px;
+  line-height: 1.4;
 }
 
 .area-content p {
   min-height: 68px;
-  margin: 16px 0 20px;
+
+  margin: 15px 0 20px;
+
   color: #aeb1b0;
   font-size: 12px;
   line-height: 1.6;
 }
 
-.area-content a {
+.area-link {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+
   color: var(--gold-soft);
   font-size: 11px;
+  line-height: 1;
 }
 
-.area-content b {
-  font-weight: 400;
-  font-size: 15px;
+.area-link svg {
+  transition: transform 180ms ease;
+}
+
+.area-card:hover .area-link svg {
+  transform: translateX(4px);
 }
 
 /* =========================
