@@ -1,17 +1,11 @@
-"use client";
-
 import {
-  Layers,
+  Layers3,
   FileText,
   Box,
   Share2,
+  ArrowRight,
   Search,
   Sun,
-  ArrowRight,
-  Youtube,
-  Instagram,
-  Linkedin,
-  Link2,
 } from "lucide-react";
 
 const areas = [
@@ -19,41 +13,41 @@ const areas = [
     number: "01",
     title: "NRI",
     subtitle: "Narrative Reasoning Intelligence",
-    description:
-      "Analisis narasi secara sistematis dan berlapis. Bukan hanya apa yang terlihat, tetapi juga apa yang tersembunyi di baliknya.",
+    text: "Analisis narasi secara sistematis dan berlapis. Bukan hanya apa yang terlihat, tetapi juga apa yang tersembunyi di baliknya.",
     link: "Buka NRI",
-    icon: Layers,
-    image: "/images/card-nri.jpg",
+    icon: Layers3,
+    image:
+      "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80",
   },
   {
     number: "02",
     title: "Opini",
     subtitle: "Tulisan & Analisis",
-    description:
-      "Catatan, opini, dan refleksi tentang isu-isu penting dari sudut pandang yang jernih dan kritis.",
+    text: "Catatan, opini, dan refleksi tentang isu-isu penting dari sudut pandang yang jernih dan kritis.",
     link: "Baca Artikel",
     icon: FileText,
-    image: "/images/card-opini.jpg",
+    image:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
   },
   {
     number: "03",
     title: "Projects",
     subtitle: "Apps & Works",
-    description:
-      "Beragam proyek, aplikasi, dan eksperimen untuk menjawab masalah nyata dengan teknologi dan pemikiran sistematis.",
+    text: "Beragam proyek, aplikasi, dan eksperimen untuk menjawab masalah nyata dengan teknologi dan pemikiran sistematis.",
     link: "Lihat Projects",
     icon: Box,
-    image: "/images/card-projects.jpg",
+    image:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
   },
   {
     number: "04",
     title: "Social Live",
     subtitle: "Aktivitas Terkini",
-    description:
-      "Update terkini dari berbagai platform sosial media dalam satu tempat.",
+    text: "Update terkini dari berbagai platform sosial media dalam satu tempat.",
     link: "Lihat Social Live",
     icon: Share2,
-    image: "/images/card-social.jpg",
+    image:
+      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
@@ -63,87 +57,89 @@ const articles = [
     title: "Ketika Narasi Mengalahkan Fakta",
     date: "12 Sep 2026",
     read: "8 min read",
-    image: "/images/article-01.jpg",
+    image:
+      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
   },
   {
     category: "TECHNOLOGY",
     title: "Di Balik Layar Algoritma",
     date: "10 Sep 2026",
     read: "6 min read",
-    image: "/images/article-02.jpg",
+    image:
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80",
   },
   {
     category: "REFLECTION",
     title: "Generasi yang Tumbuh di Dunia yang Berbeda",
     date: "7 Sep 2026",
     read: "5 min read",
-    image: "/images/article-03.jpg",
+    image:
+      "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
-const navigation = [
-  { label: "Home", href: "#" },
-  { label: "NRI", href: "#nri" },
-  { label: "Opini", href: "#opini" },
-  { label: "Projects", href: "#projects" },
-  { label: "Social Live", href: "#social" },
-  { label: "About", href: "#about" },
+const projects = [
+  {
+    number: "01",
+    title: "NRI",
+    description: "Narrative Reasoning Intelligence",
+  },
+  {
+    number: "02",
+    title: "MapelQ",
+    description: "AI-powered learning environment",
+  },
+  {
+    number: "03",
+    title: "LiaOS",
+    description: "Framework for layered reality analysis",
+  },
 ];
 
 export default function Home() {
   return (
-    <main className="site">
-
-      {/* =========================
-          NAVBAR
-      ========================= */}
+    <main>
+      {/* HEADER */}
       <header className="site-header">
         <div className="brand">
           <div className="brand-name">YULIA HARTATI</div>
-          <div className="brand-tagline">
-            IDEAS · ANALYSIS · TOOLS · WORK
-          </div>
+          <div className="brand-meta">IDEAS · ANALYSIS · TOOLS · WORK</div>
         </div>
 
         <nav className="main-nav">
-          {navigation.map((item, index) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={index === 0 ? "active" : ""}
-            >
-              {item.label}
-            </a>
-          ))}
+          <a className="active" href="#">
+            Home
+          </a>
+          <a href="#nri">NRI</a>
+          <a href="#opini">Opini</a>
+          <a href="#projects">Projects</a>
+          <a href="#social">Social Live</a>
+          <a href="#about">About</a>
         </nav>
 
         <div className="header-actions">
-          <button className="search-button" aria-label="Search">
-            <Search size={17} strokeWidth={1.5} />
+          <button aria-label="Search">
+            <Search size={16} strokeWidth={1.5} />
             <span>Search...</span>
           </button>
 
-          <button className="theme-button" aria-label="Toggle theme">
-            <Sun size={18} strokeWidth={1.5} />
+          <button aria-label="Theme">
+            <Sun size={16} strokeWidth={1.5} />
           </button>
         </div>
       </header>
 
-      {/* =========================
-          HERO
-      ========================= */}
+      {/* HERO */}
       <section className="hero-section">
         <div className="hero-copy">
-          <span className="eyebrow">
-            WELCOME TO MY DIGITAL SPACE
-          </span>
+          <div className="eyebrow">WELCOME TO MY DIGITAL SPACE</div>
 
           <h1>
             Understand
             <br />
             the narrative.
             <br />
-            <em>See the bigger picture.</em>
+            <span>See the bigger picture.</span>
           </h1>
 
           <p>
@@ -153,12 +149,11 @@ export default function Home() {
           </p>
 
           <div className="hero-actions">
-            <a href="#nri" className="button button-primary">
-              Explore NRI
-              <ArrowRight size={17} />
+            <a className="button button-primary" href="#nri">
+              Explore NRI <ArrowRight size={15} />
             </a>
 
-            <a href="#opini" className="button button-secondary">
+            <a className="button button-outline" href="#opini">
               Read Latest Article
             </a>
           </div>
@@ -168,11 +163,11 @@ export default function Home() {
           className="hero-visual"
           style={{
             backgroundImage:
-              "linear-gradient(90deg, rgba(7,12,16,.96) 0%, rgba(7,12,16,.68) 35%, rgba(7,12,16,.10) 75%), url('/images/hero.jpg')",
+              "linear-gradient(90deg, rgba(5,10,13,.12), rgba(5,10,13,.05)), url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=85')",
           }}
         >
           <div className="hero-quote">
-            <span className="quote-mark">“</span>
+            <span>“</span>
             <p>
               Dunia tidak lagi
               <br />
@@ -180,84 +175,69 @@ export default function Home() {
               <br />
               Tetapi narasi.
             </p>
-            <span className="quote-line" />
+            <i />
           </div>
         </div>
       </section>
 
-      {/* =========================
-          FOUR MAIN AREAS
-      ========================= */}
-      <section className="areas-section" id="nri">
+      {/* FOUR AREAS */}
+      <section className="areas-section">
         <div className="areas-grid">
           {areas.map((area) => {
             const Icon = area.icon;
 
             return (
-              <article
+              <a
+                key={area.number}
+                href={
+                  area.title === "NRI"
+                    ? "#nri"
+                    : area.title === "Opini"
+                    ? "#opini"
+                    : area.title === "Projects"
+                    ? "#projects"
+                    : "#social"
+                }
                 className="area-card"
-                key={area.title}
                 style={{
-                  backgroundImage: `
-                    linear-gradient(
-                      180deg,
-                      rgba(8,13,17,.18) 0%,
-                      rgba(8,13,17,.72) 52%,
-                      rgba(8,13,17,.97) 100%
-                    ),
-                    url('${area.image}')
-                  `,
+                  backgroundImage: `linear-gradient(90deg, rgba(7,11,14,.96) 0%, rgba(7,11,14,.82) 58%, rgba(7,11,14,.38) 100%), url('${area.image}')`,
                 }}
               >
-                <div className="area-card-inner">
-                  <span className="card-number">
-                    {area.number}
-                  </span>
+                <div className="area-number">{area.number}</div>
 
-                  <div className="area-icon">
-                    <Icon size={29} strokeWidth={1.35} />
-                  </div>
-
-                  <div className="area-content">
-                    <h2>{area.title}</h2>
-
-                    <span className="area-subtitle">
-                      {area.subtitle}
-                    </span>
-
-                    <p>{area.description}</p>
-
-                    <a href="#">
-                      {area.link}
-                      <ArrowRight size={14} />
-                    </a>
-                  </div>
+                <div className="area-icon">
+                  <Icon size={22} strokeWidth={1.35} />
                 </div>
-              </article>
+
+                <div className="area-content">
+                  <h2>{area.title}</h2>
+                  <div className="area-subtitle">{area.subtitle}</div>
+                  <p>{area.text}</p>
+
+                  <span className="area-link">
+                    {area.link} <ArrowRight size={13} />
+                  </span>
+                </div>
+              </a>
             );
           })}
         </div>
       </section>
 
-      {/* =========================
-          LATEST ARTICLES
-      ========================= */}
-      <section className="articles-section" id="opini">
+      {/* ARTICLES */}
+      <section id="opini" className="articles-section">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">FEATURED</span>
-
+            <div className="eyebrow">FEATURED</div>
             <h2>Artikel Terbaru</h2>
-
             <p>
-              Pemikiran tentang isu penting, manusia, teknologi,
-              dan masa depan.
+              Pemikiran tentang isu penting, manusia, teknologi, dan masa
+              depan.
             </p>
           </div>
 
-          <a href="#">
-            Lihat semua artikel
-            <ArrowRight size={15} />
+          <a href="#opini" className="section-link">
+            Lihat semua artikel <ArrowRight size={13} />
           </a>
         </div>
 
@@ -265,16 +245,14 @@ export default function Home() {
           {articles.map((article) => (
             <article className="article-card" key={article.title}>
               <div
-                className="article-thumb"
+                className="article-image"
                 style={{
                   backgroundImage: `url('${article.image}')`,
                 }}
               />
 
               <div className="article-body">
-                <span className="article-category">
-                  {article.category}
-                </span>
+                <div className="article-category">{article.category}</div>
 
                 <h3>{article.title}</h3>
 
@@ -289,41 +267,59 @@ export default function Home() {
         </div>
       </section>
 
-      {/* =========================
-          SOCIAL LIVE
-      ========================= */}
-      <section className="social-section" id="social">
-        <div className="social-inner">
-          <span className="eyebrow">
-            04 / SOCIAL LIVE
-          </span>
+      {/* PROJECTS */}
+      <section id="projects" className="projects-section">
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">PROJECTS</div>
+            <h2>Things being built.</h2>
+            <p>Tools, experiments, and systems in development.</p>
+          </div>
 
-          <h2>
-            Ideas don&apos;t stop
-            <br />
-            at the website.
-          </h2>
-
-          <p>
-            A live layer connecting the ecosystem with ongoing
-            conversations, publications, and activity across
-            social platforms.
-          </p>
-
-          <a href="#" className="button button-secondary">
-            Lihat Social Live
-            <ArrowRight size={15} />
+          <a href="#projects" className="section-link">
+            Lihat semua <ArrowRight size={13} />
           </a>
+        </div>
+
+        <div className="projects-list">
+          {projects.map((project) => (
+            <a href="#projects" className="project-row" key={project.number}>
+              <span className="project-number">{project.number}</span>
+
+              <div>
+                <h3>{project.title}</h3>
+                <p>{project.description}</p>
+              </div>
+
+              <ArrowRight size={14} />
+            </a>
+          ))}
         </div>
       </section>
 
-      {/* =========================
-          ABOUT
-      ========================= */}
-      <section className="about-section" id="about">
-        <div className="about-label eyebrow">
-          ABOUT
-        </div>
+      {/* SOCIAL LIVE */}
+      <section id="social" className="social-section">
+        <div className="eyebrow">04 / SOCIAL LIVE</div>
+
+        <h2>
+          Ideas don&apos;t stop
+          <br />
+          at the website.
+        </h2>
+
+        <p>
+          A live layer connecting the ecosystem with ongoing conversations,
+          publications, and activity across social platforms.
+        </p>
+
+        <a href="#social" className="button button-outline">
+          Lihat Social Live <ArrowRight size={14} />
+        </a>
+      </section>
+
+      {/* ABOUT */}
+      <section id="about" className="about-section">
+        <div className="eyebrow">ABOUT</div>
 
         <div className="about-grid">
           <h2>
@@ -334,107 +330,60 @@ export default function Home() {
 
           <div className="about-copy">
             <p>
-              Writing, analysis, experimentation, and building
-              tools around one recurring question:
+              Writing, analysis, experimentation, and building tools around
+              one recurring question:
             </p>
 
-            <strong>
-              how do we understand what we are seeing?
-            </strong>
+            <strong>how do we understand what we are seeing?</strong>
           </div>
         </div>
       </section>
 
-      {/* =========================
-          FOOTER
-      ========================= */}
+      {/* FOOTER */}
       <footer className="site-footer">
-        <div className="footer-main">
+        <div className="footer-quote">
+          “Lebih banyak pertanyaan,
+          <br />
+          lebih sedikit kepastian,
+          <br />
+          dunia akan jadi tempat
+          <br />
+          yang lebih baik.”
+        </div>
 
-          <div className="footer-quote">
-            <blockquote>
-              “Lebih banyak pertanyaan,
-              <br />
-              lebih sedikit kepastian,
-              <br />
-              dunia akan jadi tempat
-              <br />
-              yang lebih baik.”
-            </blockquote>
+        <div className="footer-column">
+          <div className="footer-label">QUICK LINKS</div>
+          <a href="#nri">NRI</a>
+          <a href="#opini">Opini</a>
+          <a href="#projects">Projects</a>
+          <a href="#social">Social Live</a>
+          <a href="#about">About</a>
+        </div>
 
-            <span className="quote-line" />
+        <div className="footer-column">
+          <div className="footer-label">STAY CONNECTED</div>
+
+          <div className="social-icons">
+            <span>YouTube</span>
+            <span>X</span>
+            <span>Instagram</span>
+            <span>TikTok</span>
+            <span>LinkedIn</span>
           </div>
 
-          <div className="footer-links">
-            <span className="footer-heading">
-              QUICK LINKS
-            </span>
+          <div className="newsletter">
+            <p>Dapatkan update artikel dan proyek terbaru.</p>
 
-            <a href="#nri">NRI</a>
-            <a href="#opini">Opini</a>
-            <a href="#projects">Projects</a>
-            <a href="#social">Social Live</a>
-            <a href="#about">About</a>
-          </div>
-
-          <div className="footer-connect">
-            <span className="footer-heading">
-              STAY CONNECTED
-            </span>
-
-            <div className="social-icons">
-              <a href="#" aria-label="YouTube">
-                <Youtube size={18} />
-              </a>
-
-              <a href="#" aria-label="X">
-                X
-              </a>
-
-              <a href="#" aria-label="Instagram">
-                <Instagram size={18} />
-              </a>
-
-              <a href="#" aria-label="TikTok">
-                ♪
-              </a>
-
-              <a href="#" aria-label="LinkedIn">
-                <Linkedin size={18} />
-              </a>
-
-              <a href="#" aria-label="Link">
-                <Link2 size={18} />
-              </a>
-            </div>
-
-            <div className="newsletter">
-              <p>
-                Dapatkan update artikel dan proyek terbaru.
-              </p>
-
-              <form>
-                <input
-                  type="email"
-                  placeholder="Masukkan email Anda"
-                  aria-label="Email"
-                />
-
-                <button type="submit" aria-label="Subscribe">
-                  <ArrowRight size={17} />
-                </button>
-              </form>
+            <div className="newsletter-input">
+              <span>Masukkan email Anda</span>
+              <ArrowRight size={14} />
             </div>
           </div>
-
         </div>
 
         <div className="footer-bottom">
           <span>YULIA HARTATI</span>
-
-          <span>
-            © 2026 yuliahartati.com. All rights reserved.
-          </span>
+          <span>© 2026 yuliahartati.com. All rights reserved.</span>
 
           <div>
             <a href="#">Privacy</a>
@@ -443,7 +392,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
     </main>
   );
 }
