@@ -1,48 +1,33 @@
-const navigation = [
-  { label: "Home", href: "/" },
-  { label: "NRI", href: "#nri" },
-  { label: "Opini", href: "#opini" },
-  { label: "Projects", href: "#projects" },
-  { label: "Social Live", href: "#social" },
-  { label: "About", href: "#about" },
-];
+"use client";
 
-const ecosystem = [
+const sections = [
   {
     number: "01",
     title: "NRI",
     subtitle: "Narrative Reasoning Intelligence",
-    description:
-      "Analisis narasi secara sistematis dan berlapis. Bukan hanya apa yang terlihat, tetapi juga apa yang tersembunyi di baliknya.",
+    text: "Analisis narasi secara sistematis dan berlapis. Bukan hanya apa yang terlihat, tetapi juga apa yang tersembunyi di baliknya.",
     action: "Buka NRI",
-    href: "#nri",
   },
   {
     number: "02",
     title: "Opini",
     subtitle: "Tulisan & Analisis",
-    description:
-      "Catatan, opini, dan refleksi tentang isu-isu penting dari sudut pandang yang jernih dan kritis.",
+    text: "Catatan, opini, dan refleksi tentang isu-isu penting dari sudut pandang yang jernih dan kritis.",
     action: "Baca Artikel",
-    href: "#opini",
   },
   {
     number: "03",
     title: "Projects",
     subtitle: "Apps & Works",
-    description:
-      "Beragam proyek, aplikasi, dan eksperimen untuk menjawab masalah nyata dengan teknologi dan pemikiran sistematis.",
+    text: "Beragam proyek, aplikasi, dan eksperimen untuk menjawab masalah nyata dengan teknologi dan pemikiran sistematis.",
     action: "Lihat Projects",
-    href: "#projects",
   },
   {
     number: "04",
     title: "Social Live",
     subtitle: "Aktivitas Terkini",
-    description:
-      "Update terkini dari berbagai platform sosial media dalam satu tempat.",
+    text: "Update terkini dari berbagai platform sosial media dalam satu tempat.",
     action: "Lihat Social Live",
-    href: "#social",
   },
 ];
 
@@ -52,65 +37,79 @@ const articles = [
     title: "Ketika Narasi Mengalahkan Fakta",
     date: "12 Sep 2026",
     read: "8 min read",
+    image: "article-image article-one",
   },
   {
     category: "TECHNOLOGY",
     title: "Di Balik Layar Algoritma",
     date: "10 Sep 2026",
     read: "6 min read",
+    image: "article-image article-two",
   },
   {
     category: "REFLECTION",
     title: "Generasi yang Tumbuh di Dunia yang Berbeda",
     date: "7 Sep 2026",
     read: "5 min read",
+    image: "article-image article-three",
+  },
+];
+
+const projects = [
+  {
+    number: "01",
+    title: "NRI",
+    description: "Narrative Reasoning Intelligence",
+  },
+  {
+    number: "02",
+    title: "MapelQ",
+    description: "AI-powered learning environment",
+  },
+  {
+    number: "03",
+    title: "LiaOS",
+    description: "Framework for layered reality analysis",
   },
 ];
 
 export default function Home() {
   return (
-    <main className="home">
+    <main className="site-shell">
       {/* HEADER */}
       <header className="site-header">
         <div className="brand">
-          <a href="/" className="brand-name">
-            YULIA HARTATI
-          </a>
-          <span className="brand-tagline">
-            IDEAS · ANALYSIS · TOOLS · WORK
-          </span>
+          <strong>YULIA HARTATI</strong>
+          <span>IDEAS · ANALYSIS · TOOLS · WORK</span>
         </div>
 
-        <nav className="main-nav" aria-label="Main navigation">
-          {navigation.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={item.label === "Home" ? "active" : ""}
-            >
-              {item.label}
-            </a>
-          ))}
+        <nav className="main-nav">
+          <a className="active" href="#home">
+            Home
+          </a>
+          <a href="#nri">NRI</a>
+          <a href="#opini">Opini</a>
+          <a href="#projects">Projects</a>
+          <a href="#social">Social Live</a>
+          <a href="#about">About</a>
         </nav>
 
-        <div className="header-actions">
-          <button className="search-button" type="button">
-            <span className="search-icon">⌕</span>
+        <div className="header-tools">
+          <button className="search-button" aria-label="Search">
+            <span>⌕</span>
             <span>Search...</span>
           </button>
 
-          <button className="theme-button" type="button" aria-label="Theme">
+          <button className="theme-button" aria-label="Toggle theme">
             ☼
           </button>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="hero">
+      <section id="home" className="hero-section">
         <div className="hero-copy">
-          <span className="section-kicker">
-            WELCOME TO MY DIGITAL SPACE
-          </span>
+          <span className="eyebrow">WELCOME TO MY DIGITAL SPACE</span>
 
           <h1>
             Understand
@@ -127,25 +126,19 @@ export default function Home() {
           </p>
 
           <div className="hero-actions">
-            <a href="#nri" className="button button-primary">
+            <a className="button button-primary" href="#nri">
               Explore NRI <span>→</span>
             </a>
 
-            <a href="#opini" className="button button-secondary">
+            <a className="button button-secondary" href="#opini">
               Read Latest Article
             </a>
           </div>
         </div>
 
         <div className="hero-visual">
-          <div className="hero-image hero-image-main">
-            <span className="hero-image-placeholder">
-              HERO IMAGE
-            </span>
-          </div>
-
           <div className="hero-quote">
-            <span className="quote-mark">“</span>
+            <span>“</span>
             <p>
               Dunia tidak lagi
               <br />
@@ -153,33 +146,35 @@ export default function Home() {
               <br />
               Tetapi narasi.
             </p>
-            <span className="quote-line" />
+            <i />
           </div>
         </div>
       </section>
 
-      {/* ECOSYSTEM */}
-      <section className="ecosystem-section" id="nri">
-        <div className="ecosystem-grid">
-          {ecosystem.map((item) => (
-            <article className="ecosystem-card" key={item.number}>
-              <div className="card-number">{item.number}</div>
+      {/* FOUR MAIN AREAS */}
+      <section id="nri" className="areas-section">
+        <div className="areas-grid">
+          {sections.map((item) => (
+            <article
+              key={item.number}
+              className={`area-card area-${item.number}`}
+            >
+              <div className="area-number">{item.number}</div>
 
-              <div className="card-icon">
-                {item.number === "01" && "◈"}
+              <div className="area-icon">
+                {item.number === "01" && "◇"}
                 {item.number === "02" && "▤"}
-                {item.number === "03" && "◇"}
+                {item.number === "03" && "□"}
                 {item.number === "04" && "⌘"}
               </div>
 
-              <div className="card-content">
+              <div className="area-content">
                 <h2>{item.title}</h2>
                 <span>{item.subtitle}</span>
+                <p>{item.text}</p>
 
-                <p>{item.description}</p>
-
-                <a href={item.href} className="card-link">
-                  {item.action} <span>→</span>
+                <a href={item.number === "01" ? "#nri" : `#${item.title.toLowerCase().replace(" ", "-")}`}>
+                  {item.action} <b>→</b>
                 </a>
               </div>
             </article>
@@ -188,29 +183,27 @@ export default function Home() {
       </section>
 
       {/* FEATURED ARTICLES */}
-      <section className="featured-section" id="opini">
-        <div className="featured-intro">
-          <span className="section-kicker">FEATURED</span>
+      <section id="opini" className="articles-section">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">FEATURED</span>
+            <h2>Artikel Terbaru</h2>
+            <p>
+              Pemikiran tentang isu penting, manusia, teknologi, dan masa
+              depan.
+            </p>
+          </div>
 
-          <h2>Artikel Terbaru</h2>
-
-          <p>
-            Pemikiran tentang isu penting, manusia, teknologi, dan masa depan.
-          </p>
+          <a href="#opini">Lihat semua artikel →</a>
         </div>
 
-        <div className="article-grid">
-          {articles.map((article, index) => (
+        <div className="articles-grid">
+          {articles.map((article) => (
             <article className="article-card" key={article.title}>
-              <div className={`article-image article-image-${index + 1}`}>
+              <div className={article.image} />
+
+              <div className="article-body">
                 <span>{article.category}</span>
-              </div>
-
-              <div className="article-content">
-                <span className="article-category">
-                  {article.category}
-                </span>
-
                 <h3>{article.title}</h3>
 
                 <div className="article-meta">
@@ -222,64 +215,43 @@ export default function Home() {
             </article>
           ))}
         </div>
-
-        <div className="section-more">
-          <a href="#opini">
-            Lihat semua artikel <span>→</span>
-          </a>
-        </div>
       </section>
 
       {/* PROJECTS */}
-      <section className="projects-section" id="projects">
-        <div className="section-heading-row">
+      <section id="projects" className="projects-section">
+        <div className="section-heading">
           <div>
-            <span className="section-kicker">PROJECTS</span>
+            <span className="eyebrow">PROJECTS</span>
             <h2>Things being built.</h2>
+            <p>Tools, experiments, and systems in development.</p>
           </div>
 
-          <a href="#projects" className="section-link">
-            View Projects → 
-          </a>
+          <a href="#projects">Lihat semua →</a>
         </div>
 
         <div className="project-list">
-          <a href="#nri" className="project-row">
-            <span>01</span>
-            <div>
-              <h3>NRI</h3>
-              <p>Narrative Reasoning Intelligence</p>
-            </div>
-            <span className="project-arrow">↗</span>
-          </a>
+          {projects.map((project) => (
+            <article className="project-row" key={project.title}>
+              <span className="project-number">{project.number}</span>
 
-          <a href="#projects" className="project-row">
-            <span>02</span>
-            <div>
-              <h3>MapelQ</h3>
-              <p>AI-powered learning environment</p>
-            </div>
-            <span className="project-arrow">↗</span>
-          </a>
+              <div>
+                <h3>{project.title}</h3>
+                <p>{project.description}</p>
+              </div>
 
-          <a href="#projects" className="project-row">
-            <span>03</span>
-            <div>
-              <h3>LiaOS</h3>
-              <p>Framework for layered reality analysis</p>
-            </div>
-            <span className="project-arrow">↗</span>
-          </a>
+              <span className="project-arrow">↗</span>
+            </article>
+          ))}
         </div>
       </section>
 
       {/* SOCIAL LIVE */}
-      <section className="social-section" id="social">
+      <section id="social" className="social-section">
         <div>
-          <span className="section-kicker">04 / SOCIAL LIVE</span>
+          <span className="eyebrow">04 / SOCIAL LIVE</span>
 
           <h2>
-            Ideas don&apos;t stop
+            Ideas don't stop
             <br />
             at the website.
           </h2>
@@ -289,16 +261,16 @@ export default function Home() {
             publications, and activity across social platforms.
           </p>
 
-          <a href="#social" className="button button-secondary">
-            Social Live →
+          <a className="button button-secondary" href="#social">
+            Lihat Social Live →
           </a>
         </div>
       </section>
 
       {/* ABOUT */}
-      <section className="about-section" id="about">
-        <div>
-          <span className="section-kicker">ABOUT</span>
+      <section id="about" className="about-section">
+        <div className="about-title">
+          <span className="eyebrow">ABOUT</span>
 
           <h2>
             Yulia
@@ -319,50 +291,47 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="site-footer">
-        <div className="footer-main">
-          <div className="footer-quote">
-            <p>
-              “Lebih banyak pertanyaan,
-              <br />
-              lebih sedikit kepastian,
-              <br />
-              dunia akan jadi tempat
-              <br />
-              yang lebih baik.”
-            </p>
+        <div className="footer-quote">
+          <blockquote>
+            “Lebih banyak pertanyaan,
+            <br />
+            lebih sedikit kepastian,
+            <br />
+            dunia akan jadi tempat
+            <br />
+            yang lebih baik.”
+          </blockquote>
 
-            <span />
+          <span>—</span>
+        </div>
+
+        <div className="footer-links">
+          <span>QUICK LINKS</span>
+          <a href="#nri">NRI</a>
+          <a href="#opini">Opini</a>
+          <a href="#projects">Projects</a>
+          <a href="#social">Social Live</a>
+          <a href="#about">About</a>
+        </div>
+
+        <div className="footer-social">
+          <span>STAY CONNECTED</span>
+
+          <div className="social-icons">
+            <span>▶</span>
+            <span>𝕏</span>
+            <span>◎</span>
+            <span>♪</span>
+            <span>in</span>
+            <span>↗</span>
           </div>
 
-          <div className="footer-links">
-            <span className="footer-label">QUICK LINKS</span>
+          <div className="newsletter">
+            <p>Dapatkan update artikel dan proyek terbaru.</p>
 
-            <a href="#nri">NRI</a>
-            <a href="#opini">Opini</a>
-            <a href="#projects">Projects</a>
-            <a href="#social">Social Live</a>
-            <a href="#about">About</a>
-          </div>
-
-          <div className="footer-social">
-            <span className="footer-label">STAY CONNECTED</span>
-
-            <div className="social-icons">
-              <span>▶</span>
-              <span>𝕏</span>
-              <span>◎</span>
-              <span>♪</span>
-              <span>in</span>
-              <span>↗</span>
-            </div>
-
-            <div className="newsletter">
-              <p>Dapatkan update artikel dan proyek terbaru.</p>
-
-              <div className="newsletter-input">
-                <span>Masukkan email Anda</span>
-                <span>→</span>
-              </div>
+            <div>
+              <span>Masukkan email Anda</span>
+              <b>→</b>
             </div>
           </div>
         </div>
@@ -373,9 +342,9 @@ export default function Home() {
           <span>© 2026 yuliahartati.com. All rights reserved.</span>
 
           <div>
-            <a href="#privacy">Privacy</a>
-            <a href="#terms">Terms</a>
-            <a href="#contact">Contact</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
           </div>
         </div>
       </footer>
