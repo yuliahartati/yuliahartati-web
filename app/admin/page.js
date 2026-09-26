@@ -15,6 +15,15 @@ const menu = [
   },
 ];
 
+const menuLinks = {
+  Dashboard: "/admin",
+  Opini: "/admin/opini",
+  Projects: "/admin/projects",
+  "Social Live": "/admin/social",
+  "Media Library": "/admin/media",
+  Settings: "/admin/settings",
+};
+
 export default function AdminPage() {
   return (
     <main className={styles.admin}>
@@ -29,15 +38,16 @@ export default function AdminPage() {
             <div key={group.section} className={styles.menuGroup}>
               <div className={styles.sectionTitle}>{group.section}</div>
 
-              {group.items.map((item, index) => (
-                <div
+              {group.items.map((item) => (
+                <a
                   key={item}
+                  href={menuLinks[item]}
                   className={`${styles.menuItem} ${
                     item === "Dashboard" ? styles.active : ""
                   }`}
                 >
                   {item}
-                </div>
+                </a>
               ))}
             </div>
           ))}
@@ -101,12 +111,14 @@ export default function AdminPage() {
                   <h3>Recent Opini</h3>
                 </div>
 
-                <button>View all</button>
+                <a href="/admin/opini">View all</a>
               </div>
 
               <div className={styles.empty}>
                 <p>No articles yet.</p>
-                <span>Your published and draft articles will appear here.</span>
+                <span>
+                  Your published and draft articles will appear here.
+                </span>
               </div>
             </section>
 
@@ -119,10 +131,10 @@ export default function AdminPage() {
               </div>
 
               <div className={styles.actions}>
-                <button>Tulis Opini Baru</button>
-                <button>Tambah Project</button>
-                <button>Buat Social Post</button>
-                <button>Upload Media</button>
+                <a href="/admin/opini/new">Tulis Opini Baru</a>
+                <a href="/admin/projects">Tambah Project</a>
+                <a href="/admin/social">Buat Social Post</a>
+                <a href="/admin/media">Upload Media</a>
               </div>
             </section>
           </div>
