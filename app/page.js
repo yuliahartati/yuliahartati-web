@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   Layers3,
   FileText,
@@ -7,6 +10,8 @@ import {
   Search,
   Sun,
 } from "lucide-react";
+
+const STORAGE_KEY = "yulia_opini";
 
 const areas = [
   {
@@ -51,7 +56,7 @@ const areas = [
   },
 ];
 
-const articles = [
+const fallbackArticles = [
   {
     category: "SOCIETY",
     title: "Ketika Narasi Mengalahkan Fakta",
@@ -96,7 +101,128 @@ const projects = [
   },
 ];
 
+function formatDate(dateValue) {
+  if (!dateValue) return "";
+
+  try {
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return dateValue;
+    }
+
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  } catch {
+    return dateValue;
+  }
+}
+
+function normalizeArticle(article) {
+  if (!article || !article.title) return null;
+
+  return {
+    category: article.category
+      ? String(article.category).toUpperCase()
+      : "OPINI",
+
+    title: String(article.title),
+
+    date: formatDate(article.publishDate) || "Tanpa tanggal",
+
+    read: "5 min read",
+
+    image:
+      article.cover ||
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
+
+    featured: Boolean(article.featured),
+
+    slug: article.slug || "",
+
+    publishDate: article.publishDate || "",
+  };
+}
+
+function getPublishedArticles() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    if (!raw) {
+      return [];
+    }
+
+    const data = JSON.parse(raw);
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data
+      .filter((article) => {
+        return (
+          article &&
+          String(article.status || "").toLowerCase() === "published" &&
+          article.title
+        );
+      })
+      .map(normalizeArticle)
+      .filter(Boolean)
+      .sort((a, b) => {
+        // Featured lebih dulu
+        if (a.featured !== b.featured) {
+          return a.featured ? -1 : 1;
+        }
+
+        // Setelah itu artikel terbaru
+        const dateA = new Date(a.publishDate || 0).getTime();
+        const dateB = new Date(b.publishDate || 0).getTime();
+
+        return dateB - dateA;
+      });
+  } catch (error) {
+    console.error("Gagal membaca artikel:", error);
+    return [];
+  }
+}
+
 export default function Home() {
+  const [articles, setArticles] = useState(fallbackArticles);
+
+  useEffect(() => {
+    const loadArticles = () => {
+      const publishedArticles = getPublishedArticles();
+
+      if (publishedArticles.length > 0) {
+        setArticles(publishedArticles.slice(0, 3));
+      } else {
+        setArticles(fallbackArticles);
+      }
+    };
+
+    loadArticles();
+
+    // Update kalau data localStorage berubah dari tab/window lain
+    const handleStorage = (event) => {
+      if (event.key === STORAGE_KEY) {
+        loadArticles();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   return (
     <main>
       {/* HEADER */}
@@ -168,6 +294,7 @@ export default function Home() {
         >
           <div className="hero-quote">
             <span>“</span>
+
             <p>
               Dunia tidak lagi
               <br />
@@ -175,6 +302,7 @@ export default function Home() {
               <br />
               Tetapi narasi.
             </p>
+
             <i />
           </div>
         </div>
@@ -211,7 +339,9 @@ export default function Home() {
 
                 <div className="area-content">
                   <h2>{area.title}</h2>
+
                   <div className="area-subtitle">{area.subtitle}</div>
+
                   <p>{area.text}</p>
 
                   <span className="area-link">
@@ -229,7 +359,9 @@ export default function Home() {
         <div className="section-heading">
           <div>
             <div className="eyebrow">FEATURED</div>
+
             <h2>Artikel Terbaru</h2>
+
             <p>
               Pemikiran tentang isu penting, manusia, teknologi, dan masa
               depan.
@@ -242,8 +374,11 @@ export default function Home() {
         </div>
 
         <div className="articles-grid">
-          {articles.map((article) => (
-            <article className="article-card" key={article.title}>
+          {articles.map((article, index) => (
+            <article
+              className="article-card"
+              key={`${article.title}-${article.slug || index}`}
+            >
               <div
                 className="article-image"
                 style={{
@@ -252,13 +387,20 @@ export default function Home() {
               />
 
               <div className="article-body">
-                <div className="article-category">{article.category}</div>
+                <div className="article-category">
+                  {article.category}
+                  {article.featured && (
+                    <span style={{ marginLeft: 8 }}>★</span>
+                  )}
+                </div>
 
                 <h3>{article.title}</h3>
 
                 <div className="article-meta">
                   <span>{article.date}</span>
+
                   <span>·</span>
+
                   <span>{article.read}</span>
                 </div>
               </div>
@@ -272,7 +414,9 @@ export default function Home() {
         <div className="section-heading">
           <div>
             <div className="eyebrow">PROJECTS</div>
+
             <h2>Things being built.</h2>
+
             <p>Tools, experiments, and systems in development.</p>
           </div>
 
@@ -283,11 +427,16 @@ export default function Home() {
 
         <div className="projects-list">
           {projects.map((project) => (
-            <a href="#projects" className="project-row" key={project.number}>
+            <a
+              href="#projects"
+              className="project-row"
+              key={project.number}
+            >
               <span className="project-number">{project.number}</span>
 
               <div>
                 <h3>{project.title}</h3>
+
                 <p>{project.description}</p>
               </div>
 
@@ -353,6 +502,7 @@ export default function Home() {
 
         <div className="footer-column">
           <div className="footer-label">QUICK LINKS</div>
+
           <a href="#nri">NRI</a>
           <a href="#opini">Opini</a>
           <a href="#projects">Projects</a>
@@ -383,6 +533,7 @@ export default function Home() {
 
         <div className="footer-bottom">
           <span>YULIA HARTATI</span>
+
           <span>© 2026 yuliahartati.com. All rights reserved.</span>
 
           <div>
