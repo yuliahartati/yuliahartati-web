@@ -60,11 +60,6 @@ const areas = [
   },
 ];
 
-/*
- * Artikel fallback.
- * Hanya dipakai kalau belum ada artikel Published
- * yang tersimpan di localStorage.
- */
 const fallbackArticles = [
   {
     category: "SOCIETY",
@@ -116,74 +111,208 @@ const projects = [
 const fallbackCover =
   "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80";
 
-export default function Home() {
-  const [articles, setArticles] = useState(fallbackArticles);
+/* =========================================================
+   NORMALIZE ARTICLE
+========================================================= */
 
-  /*
-   * Membaca artikel Published dari storage yang sama
-   * dengan halaman Admin Opini.
-   */
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+function normalizeArticle(article) {
+  if (!article || !article.title) {
+    return null;
+  }
 
-      if (!raw) {
-        return;
-      }
+  const slug = String(
+    article.slug ||
+      article.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+  );
 
-      const storedArticles = JSON.parse(raw);
+  return {
+    id: article.id || slug,
+    category: article.category || "OPINI",
+    title: article.title,
+    date: formatDate(
+      article.publishDate ||
+        article.publishedAt ||
+        article.createdAt
+    ),
+    read: estimateReadTime(article.content),
+    slug,
+    image: article.cover || fallbackCover,
+    status: article.status || "Draft",
 
-      if (!Array.isArray(storedArticles)) {
-        return;
-      }
+    /*
+     * Support beberapa kemungkinan nama field
+     * Featured dari halaman Admin.
+     */
+    featured:
+      article.featured === true ||
+      article.featured === "true" ||
+      article.isFeatured === true ||
+      article.isFeatured === "true" ||
+      article.featured === "Featured",
+  };
+}
 
-      const publishedArticles = storedArticles
-        .filter(
-          (article) =>
-            article &&
-            article.status === "Published" &&
-            article.title &&
-            article.slug
-        )
-        .sort((a, b) => {
-          const dateA = new Date(
-            a.publishDate || a.createdAt || 0
-          ).getTime();
+/* =========================================================
+   LOAD ARTICLES
+========================================================= */
 
-          const dateB = new Date(
-            b.publishDate || b.createdAt || 0
-          ).getTime();
+function loadHomepageArticles() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
 
-          return dateB - dateA;
-        })
-        .slice(0, 3)
-        .map((article) => ({
-          category: article.category || "OPINI",
-          title: article.title,
-          date: formatDate(article.publishDate),
-          read: estimateReadTime(article.content),
-          slug: article.slug,
-          image: article.cover || fallbackCover,
-        }));
-
-      /*
-       * Kalau sudah ada artikel Published,
-       * homepage menggunakan data tersebut.
-       */
-      if (publishedArticles.length > 0) {
-        setArticles(publishedArticles);
-      }
-    } catch (error) {
-      console.error("Gagal membaca artikel homepage:", error);
+    if (!raw) {
+      return fallbackArticles;
     }
+
+    const stored = JSON.parse(raw);
+
+    if (!Array.isArray(stored)) {
+      return fallbackArticles;
+    }
+
+    /*
+     * Ambil hanya artikel Published.
+     */
+    const published = stored
+      .map(normalizeArticle)
+      .filter(
+        (article) =>
+          article &&
+          String(article.status).toLowerCase() ===
+            "published"
+      );
+
+    if (published.length === 0) {
+      return fallbackArticles;
+    }
+
+    /*
+     * Urutkan terbaru.
+     */
+    const sorted = [...published].sort((a, b) => {
+      const sourceA = stored.find(
+        (item) =>
+          item &&
+          (item.id === a.id || item.slug === a.slug)
+      );
+
+      const sourceB = stored.find(
+        (item) =>
+          item &&
+          (item.id === b.id || item.slug === b.slug)
+      );
+
+      const dateA = new Date(
+        sourceA?.publishDate ||
+          sourceA?.publishedAt ||
+          sourceA?.createdAt ||
+          0
+      ).getTime();
+
+      const dateB = new Date(
+        sourceB?.publishDate ||
+          sourceB?.publishedAt ||
+          sourceB?.createdAt ||
+          0
+      ).getTime();
+
+      return dateB - dateA;
+    });
+
+    /*
+     * PRIORITAS 1:
+     * Kalau ada artikel Featured yang Published,
+     * tampilkan artikel Featured terbaru.
+     */
+    const featured = sorted.filter(
+      (article) => article.featured
+    );
+
+    if (featured.length > 0) {
+      return featured.slice(0, 3);
+    }
+
+    /*
+     * PRIORITAS 2:
+     * Kalau belum ada Featured,
+     * tampilkan Published terbaru.
+     */
+    return sorted.slice(0, 3);
+  } catch (error) {
+    console.error(
+      "Gagal membaca artikel homepage:",
+      error
+    );
+
+    return fallbackArticles;
+  }
+}
+
+/* =========================================================
+   HOME
+========================================================= */
+
+export default function Home() {
+  const [articles, setArticles] =
+    useState(fallbackArticles);
+
+  useEffect(() => {
+    /*
+     * Load pertama.
+     */
+    const refreshArticles = () => {
+      const result = loadHomepageArticles();
+      setArticles(result);
+    };
+
+    refreshArticles();
+
+    /*
+     * Kalau localStorage berubah dari tab/window lain.
+     */
+    window.addEventListener(
+      "storage",
+      refreshArticles
+    );
+
+    /*
+     * Custom event untuk perubahan dari aplikasi
+     * pada tab yang sama.
+     */
+    window.addEventListener(
+      "opini-updated",
+      refreshArticles
+    );
+
+    return () => {
+      window.removeEventListener(
+        "storage",
+        refreshArticles
+      );
+
+      window.removeEventListener(
+        "opini-updated",
+        refreshArticles
+      );
+    };
   }, []);
 
   return (
     <main>
-      {/* HEADER */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <header className="site-header">
         <div className="brand">
-          <div className="brand-name">YULIA HARTATI</div>
+          <div className="brand-name">
+            YULIA HARTATI
+          </div>
+
           <div className="brand-meta">
             IDEAS · ANALYSIS · TOOLS · WORK
           </div>
@@ -206,18 +335,34 @@ export default function Home() {
         </nav>
 
         <div className="header-actions">
-          <button aria-label="Search" type="button">
-            <Search size={16} strokeWidth={1.5} />
+          <button
+            type="button"
+            aria-label="Search"
+          >
+            <Search
+              size={16}
+              strokeWidth={1.5}
+            />
+
             <span>Search...</span>
           </button>
 
-          <button aria-label="Theme" type="button">
-            <Sun size={16} strokeWidth={1.5} />
+          <button
+            type="button"
+            aria-label="Theme"
+          >
+            <Sun
+              size={16}
+              strokeWidth={1.5}
+            />
           </button>
         </div>
       </header>
 
-      {/* HERO */}
+      {/* =====================================================
+          HERO
+      ===================================================== */}
+
       <section className="hero-section">
         <div className="hero-copy">
           <div className="eyebrow">
@@ -229,13 +374,16 @@ export default function Home() {
             <br />
             the narrative.
             <br />
-            <span>See the bigger picture.</span>
+            <span>
+              See the bigger picture.
+            </span>
           </h1>
 
           <p>
-            Exploring the intersection of society, technology, and
-            human behavior through analysis, writing, and tools that
-            help us think more clearly.
+            Exploring the intersection of society,
+            technology, and human behavior through
+            analysis, writing, and tools that help us
+            think more clearly.
           </p>
 
           <div className="hero-actions">
@@ -279,8 +427,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOUR AREAS */}
-      <section id="nri" className="areas-section">
+      {/* =====================================================
+          FOUR AREAS
+      ===================================================== */}
+
+      <section
+        id="nri"
+        className="areas-section"
+      >
         <div className="areas-grid">
           {areas.map((area) => {
             const Icon = area.icon;
@@ -299,7 +453,10 @@ export default function Home() {
                 </div>
 
                 <div className="area-icon">
-                  <Icon size={22} strokeWidth={1.35} />
+                  <Icon
+                    size={22}
+                    strokeWidth={1.35}
+                  />
                 </div>
 
                 <div className="area-content">
@@ -322,22 +479,30 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ARTICLES / FEATURED */}
-      <section id="opini" className="articles-section">
+      {/* =====================================================
+          FEATURED ARTICLES
+      ===================================================== */}
+
+      <section
+        id="opini"
+        className="articles-section"
+      >
         <div className="section-heading">
           <div>
-            <div className="eyebrow">FEATURED</div>
+            <div className="eyebrow">
+              FEATURED
+            </div>
 
             <h2>Artikel Terbaru</h2>
 
             <p>
-              Pemikiran tentang isu penting, manusia, teknologi,
-              dan masa depan.
+              Pemikiran tentang isu penting,
+              manusia, teknologi, dan masa depan.
             </p>
           </div>
 
           <a
-            href="#opini"
+            href="/opini"
             className="section-link"
           >
             Lihat semua artikel
@@ -347,53 +512,63 @@ export default function Home() {
 
         <div className="articles-grid">
           {articles.map((article) => {
-            const hasLink =
-              article.slug && article.slug !== "#";
+            const validSlug =
+              article.slug &&
+              article.slug !== "#";
 
-            const cardStyle = {
-              textDecoration: "none",
-              color: "inherit",
-              display: "block",
-            };
-
-            if (hasLink) {
+            if (validSlug) {
               return (
                 <a
+                  key={article.id || article.slug}
                   href={`/opini/${article.slug}`}
                   className="article-card"
-                  key={article.slug}
-                  style={cardStyle}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                  }}
                 >
-                  <ArticleCardContent article={article} />
+                  <ArticleCardContent
+                    article={article}
+                  />
                 </a>
               );
             }
 
             return (
               <article
+                key={article.id || article.title}
                 className="article-card"
-                key={article.title}
               >
-                <ArticleCardContent article={article} />
+                <ArticleCardContent
+                  article={article}
+                />
               </article>
             );
           })}
         </div>
       </section>
 
-      {/* PROJECTS */}
+      {/* =====================================================
+          PROJECTS
+      ===================================================== */}
+
       <section
         id="projects"
         className="projects-section"
       >
         <div className="section-heading">
           <div>
-            <div className="eyebrow">PROJECTS</div>
+            <div className="eyebrow">
+              PROJECTS
+            </div>
 
-            <h2>Things being built.</h2>
+            <h2>
+              Things being built.
+            </h2>
 
             <p>
-              Tools, experiments, and systems in development.
+              Tools, experiments, and systems
+              in development.
             </p>
           </div>
 
@@ -420,7 +595,9 @@ export default function Home() {
               <div>
                 <h3>{project.title}</h3>
 
-                <p>{project.description}</p>
+                <p>
+                  {project.description}
+                </p>
               </div>
 
               <ArrowRight size={14} />
@@ -429,7 +606,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SOCIAL LIVE */}
+      {/* =====================================================
+          SOCIAL LIVE
+      ===================================================== */}
+
       <section
         id="social"
         className="social-section"
@@ -445,9 +625,9 @@ export default function Home() {
         </h2>
 
         <p>
-          A live layer connecting the ecosystem with ongoing
-          conversations, publications, and activity across
-          social platforms.
+          A live layer connecting the ecosystem
+          with ongoing conversations, publications,
+          and activity across social platforms.
         </p>
 
         <a
@@ -459,12 +639,17 @@ export default function Home() {
         </a>
       </section>
 
-      {/* ABOUT */}
+      {/* =====================================================
+          ABOUT
+      ===================================================== */}
+
       <section
         id="about"
         className="about-section"
       >
-        <div className="eyebrow">ABOUT</div>
+        <div className="eyebrow">
+          ABOUT
+        </div>
 
         <div className="about-grid">
           <h2>
@@ -475,18 +660,23 @@ export default function Home() {
 
           <div className="about-copy">
             <p>
-              Writing, analysis, experimentation, and building
-              tools around one recurring question:
+              Writing, analysis, experimentation,
+              and building tools around one
+              recurring question:
             </p>
 
             <strong>
-              how do we understand what we are seeing?
+              how do we understand what we
+              are seeing?
             </strong>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* =====================================================
+          FOOTER
+      ===================================================== */}
+
       <footer className="site-footer">
         <div className="footer-quote">
           “Lebih banyak pertanyaan,
@@ -505,8 +695,12 @@ export default function Home() {
 
           <a href="#nri">NRI</a>
           <a href="#opini">Opini</a>
-          <a href="#projects">Projects</a>
-          <a href="#social">Social Live</a>
+          <a href="#projects">
+            Projects
+          </a>
+          <a href="#social">
+            Social Live
+          </a>
           <a href="#about">About</a>
         </div>
 
@@ -525,7 +719,8 @@ export default function Home() {
 
           <div className="newsletter">
             <p>
-              Dapatkan update artikel dan proyek terbaru.
+              Dapatkan update artikel dan proyek
+              terbaru.
             </p>
 
             <div className="newsletter-input">
@@ -539,10 +734,13 @@ export default function Home() {
         </div>
 
         <div className="footer-bottom">
-          <span>YULIA HARTATI</span>
+          <span>
+            YULIA HARTATI
+          </span>
 
           <span>
-            © 2026 yuliahartati.com. All rights reserved.
+            © 2026 yuliahartati.com.
+            All rights reserved.
           </span>
 
           <div>
@@ -560,7 +758,9 @@ export default function Home() {
    ARTICLE CARD
 ========================================================= */
 
-function ArticleCardContent({ article }) {
+function ArticleCardContent({
+  article,
+}) {
   return (
     <>
       <div
@@ -575,14 +775,20 @@ function ArticleCardContent({ article }) {
           {article.category}
         </div>
 
-        <h3>{article.title}</h3>
+        <h3>
+          {article.title}
+        </h3>
 
         <div className="article-meta">
-          <span>{article.date}</span>
+          <span>
+            {article.date}
+          </span>
 
           <span>·</span>
 
-          <span>{article.read}</span>
+          <span>
+            {article.read}
+          </span>
         </div>
       </div>
     </>
@@ -601,14 +807,17 @@ function formatDate(value) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return value;
+    return String(value);
   }
 
-  return date.toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return date.toLocaleDateString(
+    "id-ID",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }
+  );
 }
 
 function estimateReadTime(content) {
@@ -616,7 +825,7 @@ function estimateReadTime(content) {
     return "1 min read";
   }
 
-  const words = content
+  const words = String(content)
     .trim()
     .split(/\s+/)
     .filter(Boolean).length;
@@ -627,4 +836,4 @@ function estimateReadTime(content) {
   );
 
   return `${minutes} min read`;
-}
+      }
