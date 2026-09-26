@@ -2,9 +2,119 @@
 
 import { useState } from "react";
 
+const STORAGE_KEY = "yulia_opini";
+
 export default function NewOpiniPage() {
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState("Draft");
+  const [saving, setSaving] = useState(false);
+
+  const [form, setForm] = useState({
+    title: "",
+    slug: "",
+    excerpt: "",
+    cover: "",
+    content: "",
+    category: "",
+    tags: "",
+    publishDate: "",
+  });
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  function makeSlug(text) {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+  }
+
+  function handleTitleChange(e) {
+    const title = e.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      title,
+      slug: prev.slug || makeSlug(title),
+    }));
+  }
+
+  function saveArticle(targetStatus) {
+    if (!form.title.trim()) {
+      alert("Judul opini wajib diisi.");
+      return;
+    }
+
+    if (!form.excerpt.trim()) {
+      alert("Excerpt wajib diisi.");
+      return;
+    }
+
+    if (!form.content.trim()) {
+      alert("Isi artikel wajib diisi.");
+      return;
+    }
+
+    if (!form.category) {
+      alert("Kategori wajib dipilih.");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const existing = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+      );
+
+      const article = {
+        id: Date.now(),
+        title: form.title.trim(),
+        slug: form.slug.trim() || makeSlug(form.title),
+        excerpt: form.excerpt.trim(),
+        cover: form.cover,
+        content: form.content.trim(),
+        category: form.category,
+        tags: form.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        publishDate:
+          form.publishDate ||
+          new Date().toISOString().split("T")[0],
+        status: targetStatus,
+        featured,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify([article, ...existing])
+      );
+
+      alert(
+        targetStatus === "Published"
+          ? "Opini berhasil dipublish."
+          : "Draft berhasil disimpan."
+      );
+
+      window.location.href = "/admin/opini";
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menyimpan opini.");
+      setSaving(false);
+    }
+  }
 
   return (
     <main
@@ -70,7 +180,12 @@ export default function NewOpiniPage() {
         </div>
 
         {/* FORM */}
-        <form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveArticle(status);
+          }}
+        >
           <section
             style={{
               background: "#fff",
@@ -82,7 +197,10 @@ export default function NewOpiniPage() {
             {/* TITLE */}
             <Field label="Judul" required>
               <input
+                name="title"
                 type="text"
+                value={form.title}
+                onChange={handleTitleChange}
                 placeholder="Masukkan judul opini..."
                 style={inputStyle}
               />
@@ -91,10 +209,14 @@ export default function NewOpiniPage() {
             {/* SLUG */}
             <Field label="Slug">
               <input
+                name="slug"
                 type="text"
+                value={form.slug}
+                onChange={handleChange}
                 placeholder="slug-artikel"
                 style={inputStyle}
               />
+
               <small style={helpStyle}>
                 URL artikel. Bisa diedit secara manual.
               </small>
@@ -103,10 +225,14 @@ export default function NewOpiniPage() {
             {/* EXCERPT */}
             <Field label="Excerpt" required>
               <textarea
+                name="excerpt"
                 rows={4}
+                value={form.excerpt}
+                onChange={handleChange}
                 placeholder="Ringkasan singkat artikel..."
                 style={{
                   ...inputStyle,
+                  height: "auto",
                   paddingTop: 12,
                   resize: "vertical",
                 }}
@@ -145,6 +271,11 @@ export default function NewOpiniPage() {
                     cursor: "pointer",
                     fontSize: 12,
                   }}
+                  onClick={() =>
+                    alert(
+                      "Media Library belum dihubungkan. Kita sambungkan setelah CRUD Opini selesai."
+                    )
+                  }
                 >
                   Choose from Media
                 </button>
@@ -154,10 +285,14 @@ export default function NewOpiniPage() {
             {/* CONTENT */}
             <Field label="Isi Artikel" required>
               <textarea
+                name="content"
                 rows={14}
+                value={form.content}
+                onChange={handleChange}
                 placeholder="Tulis isi artikel di sini..."
                 style={{
                   ...inputStyle,
+                  height: "auto",
                   paddingTop: 12,
                   resize: "vertical",
                   lineHeight: 1.7,
@@ -167,10 +302,16 @@ export default function NewOpiniPage() {
 
             {/* CATEGORY */}
             <Field label="Kategori" required>
-              <select style={inputStyle} defaultValue="">
+              <select
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                style={inputStyle}
+              >
                 <option value="" disabled>
                   Pilih kategori
                 </option>
+
                 <option value="opini">Opini</option>
                 <option value="analisis">Analisis</option>
                 <option value="refleksi">Refleksi</option>
@@ -183,10 +324,14 @@ export default function NewOpiniPage() {
             {/* TAGS */}
             <Field label="Tags">
               <input
+                name="tags"
                 type="text"
+                value={form.tags}
+                onChange={handleChange}
                 placeholder="narrative, teknologi, pendidikan"
                 style={inputStyle}
               />
+
               <small style={helpStyle}>
                 Pisahkan beberapa tag dengan koma.
               </small>
@@ -194,7 +339,13 @@ export default function NewOpiniPage() {
 
             {/* DATE */}
             <Field label="Tanggal Publikasi">
-              <input type="date" style={inputStyle} />
+              <input
+                name="publishDate"
+                type="date"
+                value={form.publishDate}
+                onChange={handleChange}
+                style={inputStyle}
+              />
             </Field>
 
             {/* OPTIONS */}
@@ -274,36 +425,42 @@ export default function NewOpiniPage() {
               Cancel
             </a>
 
+            {/* SAVE DRAFT */}
             <button
               type="button"
+              disabled={saving}
+              onClick={() => saveArticle("Draft")}
               style={{
                 height: 42,
                 padding: "0 18px",
                 border: "1px solid #ccc",
                 borderRadius: 6,
-                background: "#fff",
+                background: saving ? "#eee" : "#fff",
                 color: "#333",
                 fontSize: 13,
-                cursor: "pointer",
+                cursor: saving ? "not-allowed" : "pointer",
               }}
             >
-              Simpan Draft
+              {saving ? "Menyimpan..." : "Simpan Draft"}
             </button>
 
+            {/* PUBLISH */}
             <button
               type="button"
+              disabled={saving}
+              onClick={() => saveArticle("Published")}
               style={{
                 height: 42,
                 padding: "0 20px",
                 border: "none",
                 borderRadius: 6,
-                background: "#171717",
+                background: saving ? "#777" : "#171717",
                 color: "#fff",
                 fontSize: 13,
-                cursor: "pointer",
+                cursor: saving ? "not-allowed" : "pointer",
               }}
             >
-              Publish
+              {saving ? "Publishing..." : "Publish"}
             </button>
           </div>
         </form>
@@ -317,8 +474,16 @@ function Field({ label, required, children }) {
     <div style={{ marginBottom: 22 }}>
       <label style={labelStyle}>
         {label}
+
         {required && (
-          <span style={{ color: "#999", marginLeft: 3 }}>*</span>
+          <span
+            style={{
+              color: "#999",
+              marginLeft: 3,
+            }}
+          >
+            *
+          </span>
         )}
       </label>
 
@@ -354,4 +519,4 @@ const helpStyle = {
   marginTop: 6,
   fontSize: 11,
   color: "#999",
-};
+};};
