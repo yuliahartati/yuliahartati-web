@@ -1,369 +1,630 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Calendar, Tag } from "lucide-react";
+import {
+  Layers3,
+  FileText,
+  Box,
+  Share2,
+  ArrowRight,
+  Search,
+  Sun,
+} from "lucide-react";
 
 const STORAGE_KEY = "yulia_opini";
 
-export default function OpiniDetailPage() {
-  const params = useParams();
-  const router = useRouter();
+const areas = [
+  {
+    number: "01",
+    title: "NRI",
+    subtitle: "Narrative Reasoning Intelligence",
+    text: "Analisis narasi secara sistematis dan berlapis. Bukan hanya apa yang terlihat, tetapi juga apa yang tersembunyi di baliknya.",
+    link: "Buka NRI",
+    href: "#nri",
+    icon: Layers3,
+    image:
+      "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    number: "02",
+    title: "Opini",
+    subtitle: "Tulisan & Analisis",
+    text: "Catatan, opini, dan refleksi tentang isu-isu penting dari sudut pandang yang jernih dan kritis.",
+    link: "Baca Artikel",
+    href: "#opini",
+    icon: FileText,
+    image:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    number: "03",
+    title: "Projects",
+    subtitle: "Apps & Works",
+    text: "Beragam proyek, aplikasi, dan eksperimen untuk menjawab masalah nyata dengan teknologi dan pemikiran sistematis.",
+    link: "Lihat Projects",
+    href: "#projects",
+    icon: Box,
+    image:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    number: "04",
+    title: "Social Live",
+    subtitle: "Aktivitas Terkini",
+    text: "Update terkini dari berbagai platform sosial media dalam satu tempat.",
+    link: "Lihat Social Live",
+    href: "#social",
+    icon: Share2,
+    image:
+      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80",
+  },
+];
 
-  const [article, setArticle] = useState(null);
-  const [loading, setLoading] = useState(true);
+/*
+ * Artikel fallback.
+ * Hanya dipakai kalau belum ada artikel Published
+ * yang tersimpan di localStorage.
+ */
+const fallbackArticles = [
+  {
+    category: "SOCIETY",
+    title: "Ketika Narasi Mengalahkan Fakta",
+    date: "12 Sep 2026",
+    read: "8 min read",
+    slug: "#",
+    image:
+      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    category: "TECHNOLOGY",
+    title: "Di Balik Layar Algoritma",
+    date: "10 Sep 2026",
+    read: "6 min read",
+    slug: "#",
+    image:
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    category: "REFLECTION",
+    title: "Generasi yang Tumbuh di Dunia yang Berbeda",
+    date: "7 Sep 2026",
+    read: "5 min read",
+    slug: "#",
+    image:
+      "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=1200&q=80",
+  },
+];
 
-  const slug = Array.isArray(params?.slug)
-    ? params.slug[0]
-    : params?.slug;
+const projects = [
+  {
+    number: "01",
+    title: "NRI",
+    description: "Narrative Reasoning Intelligence",
+  },
+  {
+    number: "02",
+    title: "MapelQ",
+    description: "AI-powered learning environment",
+  },
+  {
+    number: "03",
+    title: "LiaOS",
+    description: "Framework for layered reality analysis",
+  },
+];
 
+const fallbackCover =
+  "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80";
+
+export default function Home() {
+  const [articles, setArticles] = useState(fallbackArticles);
+
+  /*
+   * Membaca artikel Published dari storage yang sama
+   * dengan halaman Admin Opini.
+   */
   useEffect(() => {
-    if (!slug) return;
-
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      const articles = raw ? JSON.parse(raw) : [];
 
-      const found = articles.find(
-        (item) =>
-          item.slug === slug &&
-          item.status === "Published"
-      );
+      if (!raw) {
+        return;
+      }
 
-      setArticle(found || null);
+      const storedArticles = JSON.parse(raw);
+
+      if (!Array.isArray(storedArticles)) {
+        return;
+      }
+
+      const publishedArticles = storedArticles
+        .filter(
+          (article) =>
+            article &&
+            article.status === "Published" &&
+            article.title &&
+            article.slug
+        )
+        .sort((a, b) => {
+          const dateA = new Date(
+            a.publishDate || a.createdAt || 0
+          ).getTime();
+
+          const dateB = new Date(
+            b.publishDate || b.createdAt || 0
+          ).getTime();
+
+          return dateB - dateA;
+        })
+        .slice(0, 3)
+        .map((article) => ({
+          category: article.category || "OPINI",
+          title: article.title,
+          date: formatDate(article.publishDate),
+          read: estimateReadTime(article.content),
+          slug: article.slug,
+          image: article.cover || fallbackCover,
+        }));
+
+      /*
+       * Kalau sudah ada artikel Published,
+       * homepage menggunakan data tersebut.
+       */
+      if (publishedArticles.length > 0) {
+        setArticles(publishedArticles);
+      }
     } catch (error) {
-      console.error("Gagal membaca artikel:", error);
-      setArticle(null);
-    } finally {
-      setLoading(false);
+      console.error("Gagal membaca artikel homepage:", error);
     }
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <main style={styles.page}>
-        <div style={styles.loading}>Memuat artikel...</div>
-      </main>
-    );
-  }
-
-  if (!article) {
-    return (
-      <main style={styles.page}>
-        <div style={styles.notFound}>
-          <div style={styles.eyebrow}>404 / ARTICLE NOT FOUND</div>
-
-          <h1 style={styles.notFoundTitle}>
-            Artikel tidak ditemukan.
-          </h1>
-
-          <p style={styles.notFoundText}>
-            Artikel mungkin belum dipublish atau sudah tidak tersedia.
-          </p>
-
-          <button
-            onClick={() => router.push("/")}
-            style={styles.backButton}
-          >
-            <ArrowLeft size={15} />
-            Kembali ke Home
-          </button>
-        </div>
-      </main>
-    );
-  }
+  }, []);
 
   return (
-    <main style={styles.page}>
-      {/* TOP BAR */}
-      <div style={styles.topBar}>
-        <button
-          onClick={() => router.back()}
-          style={styles.backLink}
-        >
-          <ArrowLeft size={14} />
-          Kembali
-        </button>
-
-        <span style={styles.topBrand}>
-          YULIA HARTATI
-        </span>
-      </div>
-
-      {/* ARTICLE HEADER */}
-      <article style={styles.article}>
-        <div style={styles.category}>
-          {article.category || "OPINI"}
-        </div>
-
-        <h1 style={styles.title}>
-          {article.title}
-        </h1>
-
-        {article.excerpt && (
-          <p style={styles.excerpt}>
-            {article.excerpt}
-          </p>
-        )}
-
-        <div style={styles.meta}>
-          {article.publishDate && (
-            <span style={styles.metaItem}>
-              <Calendar size={14} />
-              {formatDate(article.publishDate)}
-            </span>
-          )}
-
-          {article.tags && (
-            <span style={styles.metaItem}>
-              <Tag size={14} />
-              {article.tags}
-            </span>
-          )}
-        </div>
-
-        {/* COVER */}
-        {article.cover && (
-          <div style={styles.coverWrapper}>
-            <img
-              src={article.cover}
-              alt={article.title}
-              style={styles.cover}
-            />
+    <main>
+      {/* HEADER */}
+      <header className="site-header">
+        <div className="brand">
+          <div className="brand-name">YULIA HARTATI</div>
+          <div className="brand-meta">
+            IDEAS · ANALYSIS · TOOLS · WORK
           </div>
-        )}
-
-        {/* CONTENT */}
-        <div style={styles.content}>
-          {article.content}
         </div>
 
-        {/* FOOTER */}
-        <div style={styles.articleFooter}>
-          <div>
-            <div style={styles.footerLabel}>
-              YULIA HARTATI
-            </div>
+        <nav className="main-nav">
+          <a className="active" href="#">
+            Home
+          </a>
 
-            <div style={styles.footerText}>
-              Ideas · Analysis · Tools · Work
-            </div>
-          </div>
+          <a href="#nri">NRI</a>
 
-          <button
-            onClick={() => router.push("/")}
-            style={styles.homeButton}
-          >
-            Artikel lainnya
-            <ArrowRight size={14} />
+          <a href="#opini">Opini</a>
+
+          <a href="#projects">Projects</a>
+
+          <a href="#social">Social Live</a>
+
+          <a href="#about">About</a>
+        </nav>
+
+        <div className="header-actions">
+          <button aria-label="Search" type="button">
+            <Search size={16} strokeWidth={1.5} />
+            <span>Search...</span>
+          </button>
+
+          <button aria-label="Theme" type="button">
+            <Sun size={16} strokeWidth={1.5} />
           </button>
         </div>
-      </article>
+      </header>
+
+      {/* HERO */}
+      <section className="hero-section">
+        <div className="hero-copy">
+          <div className="eyebrow">
+            WELCOME TO MY DIGITAL SPACE
+          </div>
+
+          <h1>
+            Understand
+            <br />
+            the narrative.
+            <br />
+            <span>See the bigger picture.</span>
+          </h1>
+
+          <p>
+            Exploring the intersection of society, technology, and
+            human behavior through analysis, writing, and tools that
+            help us think more clearly.
+          </p>
+
+          <div className="hero-actions">
+            <a
+              className="button button-primary"
+              href="#nri"
+            >
+              Explore NRI
+              <ArrowRight size={15} />
+            </a>
+
+            <a
+              className="button button-outline"
+              href="#opini"
+            >
+              Read Latest Article
+            </a>
+          </div>
+        </div>
+
+        <div
+          className="hero-visual"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, rgba(5,10,13,.12), rgba(5,10,13,.05)), url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=85')",
+          }}
+        >
+          <div className="hero-quote">
+            <span>“</span>
+
+            <p>
+              Dunia tidak lagi
+              <br />
+              diperintah senjata.
+              <br />
+              Tetapi narasi.
+            </p>
+
+            <i />
+          </div>
+        </div>
+      </section>
+
+      {/* FOUR AREAS */}
+      <section id="nri" className="areas-section">
+        <div className="areas-grid">
+          {areas.map((area) => {
+            const Icon = area.icon;
+
+            return (
+              <a
+                key={area.number}
+                href={area.href}
+                className="area-card"
+                style={{
+                  backgroundImage: `linear-gradient(90deg, rgba(7,11,14,.96) 0%, rgba(7,11,14,.82) 58%, rgba(7,11,14,.38) 100%), url('${area.image}')`,
+                }}
+              >
+                <div className="area-number">
+                  {area.number}
+                </div>
+
+                <div className="area-icon">
+                  <Icon size={22} strokeWidth={1.35} />
+                </div>
+
+                <div className="area-content">
+                  <h2>{area.title}</h2>
+
+                  <div className="area-subtitle">
+                    {area.subtitle}
+                  </div>
+
+                  <p>{area.text}</p>
+
+                  <span className="area-link">
+                    {area.link}
+                    <ArrowRight size={13} />
+                  </span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ARTICLES / FEATURED */}
+      <section id="opini" className="articles-section">
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">FEATURED</div>
+
+            <h2>Artikel Terbaru</h2>
+
+            <p>
+              Pemikiran tentang isu penting, manusia, teknologi,
+              dan masa depan.
+            </p>
+          </div>
+
+          <a
+            href="#opini"
+            className="section-link"
+          >
+            Lihat semua artikel
+            <ArrowRight size={13} />
+          </a>
+        </div>
+
+        <div className="articles-grid">
+          {articles.map((article) => {
+            const hasLink =
+              article.slug && article.slug !== "#";
+
+            const cardStyle = {
+              textDecoration: "none",
+              color: "inherit",
+              display: "block",
+            };
+
+            if (hasLink) {
+              return (
+                <a
+                  href={`/opini/${article.slug}`}
+                  className="article-card"
+                  key={article.slug}
+                  style={cardStyle}
+                >
+                  <ArticleCardContent article={article} />
+                </a>
+              );
+            }
+
+            return (
+              <article
+                className="article-card"
+                key={article.title}
+              >
+                <ArticleCardContent article={article} />
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* PROJECTS */}
+      <section
+        id="projects"
+        className="projects-section"
+      >
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">PROJECTS</div>
+
+            <h2>Things being built.</h2>
+
+            <p>
+              Tools, experiments, and systems in development.
+            </p>
+          </div>
+
+          <a
+            href="#projects"
+            className="section-link"
+          >
+            Lihat semua
+            <ArrowRight size={13} />
+          </a>
+        </div>
+
+        <div className="projects-list">
+          {projects.map((project) => (
+            <a
+              href="#projects"
+              className="project-row"
+              key={project.number}
+            >
+              <span className="project-number">
+                {project.number}
+              </span>
+
+              <div>
+                <h3>{project.title}</h3>
+
+                <p>{project.description}</p>
+              </div>
+
+              <ArrowRight size={14} />
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* SOCIAL LIVE */}
+      <section
+        id="social"
+        className="social-section"
+      >
+        <div className="eyebrow">
+          04 / SOCIAL LIVE
+        </div>
+
+        <h2>
+          Ideas don&apos;t stop
+          <br />
+          at the website.
+        </h2>
+
+        <p>
+          A live layer connecting the ecosystem with ongoing
+          conversations, publications, and activity across
+          social platforms.
+        </p>
+
+        <a
+          href="#social"
+          className="button button-outline"
+        >
+          Lihat Social Live
+          <ArrowRight size={14} />
+        </a>
+      </section>
+
+      {/* ABOUT */}
+      <section
+        id="about"
+        className="about-section"
+      >
+        <div className="eyebrow">ABOUT</div>
+
+        <div className="about-grid">
+          <h2>
+            Yulia
+            <br />
+            Hartati.
+          </h2>
+
+          <div className="about-copy">
+            <p>
+              Writing, analysis, experimentation, and building
+              tools around one recurring question:
+            </p>
+
+            <strong>
+              how do we understand what we are seeing?
+            </strong>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="site-footer">
+        <div className="footer-quote">
+          “Lebih banyak pertanyaan,
+          <br />
+          lebih sedikit kepastian,
+          <br />
+          dunia akan jadi tempat
+          <br />
+          yang lebih baik.”
+        </div>
+
+        <div className="footer-column">
+          <div className="footer-label">
+            QUICK LINKS
+          </div>
+
+          <a href="#nri">NRI</a>
+          <a href="#opini">Opini</a>
+          <a href="#projects">Projects</a>
+          <a href="#social">Social Live</a>
+          <a href="#about">About</a>
+        </div>
+
+        <div className="footer-column">
+          <div className="footer-label">
+            STAY CONNECTED
+          </div>
+
+          <div className="social-icons">
+            <span>YouTube</span>
+            <span>X</span>
+            <span>Instagram</span>
+            <span>TikTok</span>
+            <span>LinkedIn</span>
+          </div>
+
+          <div className="newsletter">
+            <p>
+              Dapatkan update artikel dan proyek terbaru.
+            </p>
+
+            <div className="newsletter-input">
+              <span>
+                Masukkan email Anda
+              </span>
+
+              <ArrowRight size={14} />
+            </div>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <span>YULIA HARTATI</span>
+
+          <span>
+            © 2026 yuliahartati.com. All rights reserved.
+          </span>
+
+          <div>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
 
-function formatDate(value) {
-  try {
-    return new Date(value).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return value;
-  }
+/* =========================================================
+   ARTICLE CARD
+========================================================= */
+
+function ArticleCardContent({ article }) {
+  return (
+    <>
+      <div
+        className="article-image"
+        style={{
+          backgroundImage: `url('${article.image}')`,
+        }}
+      />
+
+      <div className="article-body">
+        <div className="article-category">
+          {article.category}
+        </div>
+
+        <h3>{article.title}</h3>
+
+        <div className="article-meta">
+          <span>{article.date}</span>
+
+          <span>·</span>
+
+          <span>{article.read}</span>
+        </div>
+      </div>
+    </>
+  );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "#070707",
-    color: "#f4f1eb",
-  },
+/* =========================================================
+   HELPERS
+========================================================= */
 
-  loading: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#999",
-    fontSize: 13,
-  },
+function formatDate(value) {
+  if (!value) {
+    return "Tanggal belum ditentukan";
+  }
 
-  notFound: {
-    maxWidth: 900,
-    margin: "0 auto",
-    padding: "140px 24px",
-  },
+  const date = new Date(value);
 
-  eyebrow: {
-    fontSize: 10,
-    letterSpacing: "0.18em",
-    color: "#999",
-    marginBottom: 18,
-  },
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
 
-  notFoundTitle: {
-    fontFamily: "Georgia, serif",
-    fontWeight: 400,
-    fontSize: "clamp(42px, 7vw, 76px)",
-    lineHeight: 0.98,
-    margin: 0,
-    maxWidth: 700,
-  },
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
-  notFoundText: {
-    color: "#888",
-    marginTop: 24,
-    fontSize: 14,
-  },
+function estimateReadTime(content) {
+  if (!content) {
+    return "1 min read";
+  }
 
-  topBar: {
-    height: 72,
-    borderBottom: "1px solid #222",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 5vw",
-  },
+  const words = content
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
 
-  topBrand: {
-    fontFamily: "Georgia, serif",
-    fontSize: 15,
-    letterSpacing: "0.08em",
-  },
+  const minutes = Math.max(
+    1,
+    Math.ceil(words / 200)
+  );
 
-  backLink: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    background: "transparent",
-    border: "none",
-    color: "#999",
-    cursor: "pointer",
-    fontSize: 12,
-    padding: 0,
-  },
-
-  article: {
-    maxWidth: 900,
-    margin: "0 auto",
-    padding: "90px 24px 120px",
-  },
-
-  category: {
-    fontSize: 10,
-    letterSpacing: "0.2em",
-    color: "#aaa",
-    marginBottom: 22,
-  },
-
-  title: {
-    fontFamily: "Georgia, serif",
-    fontWeight: 400,
-    fontSize: "clamp(44px, 7vw, 82px)",
-    lineHeight: 0.98,
-    letterSpacing: "-0.025em",
-    margin: 0,
-    maxWidth: 850,
-  },
-
-  excerpt: {
-    maxWidth: 700,
-    fontSize: 18,
-    lineHeight: 1.7,
-    color: "#aaa",
-    marginTop: 30,
-  },
-
-  meta: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 20,
-    marginTop: 28,
-    paddingTop: 20,
-    borderTop: "1px solid #222",
-    color: "#777",
-    fontSize: 11,
-  },
-
-  metaItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-  },
-
-  coverWrapper: {
-    marginTop: 55,
-    width: "100%",
-    aspectRatio: "16 / 8",
-    overflow: "hidden",
-    background: "#111",
-  },
-
-  cover: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-  },
-
-  content: {
-    maxWidth: 760,
-    margin: "60px auto 0",
-    whiteSpace: "pre-wrap",
-    fontFamily: "Georgia, serif",
-    fontSize: 18,
-    lineHeight: 1.9,
-    color: "#ddd",
-  },
-
-  articleFooter: {
-    marginTop: 90,
-    paddingTop: 30,
-    borderTop: "1px solid #222",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 20,
-  },
-
-  footerLabel: {
-    fontFamily: "Georgia, serif",
-    fontSize: 14,
-    letterSpacing: "0.08em",
-  },
-
-  footerText: {
-    marginTop: 6,
-    fontSize: 10,
-    color: "#666",
-    letterSpacing: "0.08em",
-  },
-
-  homeButton: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "11px 16px",
-    background: "transparent",
-    border: "1px solid #333",
-    color: "#ccc",
-    cursor: "pointer",
-    fontSize: 11,
-  },
-
-  backButton: {
-    marginTop: 30,
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "12px 18px",
-    background: "#e7d4a8",
-    border: "none",
-    color: "#111",
-    cursor: "pointer",
-    fontSize: 12,
-  },
-};
+  return `${minutes} min read`;
+}
