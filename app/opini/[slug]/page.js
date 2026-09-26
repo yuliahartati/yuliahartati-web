@@ -1,803 +1,303 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Layers3,
-  FileText,
-  Box,
-  Share2,
-  ArrowRight,
-  Search,
-  Sun,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { useParams } from "next/navigation";
 
 const STORAGE_KEY = "yulia_opini";
 
-const areas = [
-  {
-    number: "01",
-    title: "NRI",
-    subtitle: "Narrative Reasoning Intelligence",
-    text: "Analisis narasi secara sistematis dan berlapis. Bukan hanya apa yang terlihat, tetapi juga apa yang tersembunyi di baliknya.",
-    link: "Buka NRI",
-    href: "#nri",
-    icon: Layers3,
-    image:
-      "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    number: "02",
-    title: "Opini",
-    subtitle: "Tulisan & Analisis",
-    text: "Catatan, opini, dan refleksi tentang isu-isu penting dari sudut pandang yang jernih dan kritis.",
-    link: "Baca Artikel",
-    href: "#opini",
-    icon: FileText,
-    image:
-      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    number: "03",
-    title: "Projects",
-    subtitle: "Apps & Works",
-    text: "Beragam proyek, aplikasi, dan eksperimen untuk menjawab masalah nyata dengan teknologi dan pemikiran sistematis.",
-    link: "Lihat Projects",
-    href: "#projects",
-    icon: Box,
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    number: "04",
-    title: "Social Live",
-    subtitle: "Aktivitas Terkini",
-    text: "Update terkini dari berbagai platform sosial media dalam satu tempat.",
-    link: "Lihat Social Live",
-    href: "#social",
-    icon: Share2,
-    image:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80",
-  },
-];
-
-const fallbackArticles = [
-  {
-    category: "SOCIETY",
-    title: "Ketika Narasi Mengalahkan Fakta",
-    date: "12 Sep 2026",
-    read: "8 min read",
-    slug: "#",
-    image:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    category: "TECHNOLOGY",
-    title: "Di Balik Layar Algoritma",
-    date: "10 Sep 2026",
-    read: "6 min read",
-    slug: "#",
-    image:
-      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    category: "REFLECTION",
-    title: "Generasi yang Tumbuh di Dunia yang Berbeda",
-    date: "7 Sep 2026",
-    read: "5 min read",
-    slug: "#",
-    image:
-      "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=1200&q=80",
-  },
-];
-
-const projects = [
-  {
-    number: "01",
-    title: "NRI",
-    description: "Narrative Reasoning Intelligence",
-  },
-  {
-    number: "02",
-    title: "MapelQ",
-    description: "AI-powered learning environment",
-  },
-  {
-    number: "03",
-    title: "LiaOS",
-    description: "Framework for layered reality analysis",
-  },
-];
-
 const fallbackCover =
-  "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80";
+  "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1600&q=85";
 
-/* =========================================================
-   NORMALIZE ARTICLE
-========================================================= */
+export default function OpiniDetailPage() {
+  const params = useParams();
 
-function normalizeArticle(article) {
-  if (!article || !article.title) {
-    return null;
-  }
+  const slug =
+    typeof params?.slug === "string"
+      ? params.slug
+      : Array.isArray(params?.slug)
+      ? params.slug[0]
+      : "";
 
-  const slug = String(
-    article.slug ||
-      article.title
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-  );
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  return {
-    id: article.id || slug,
-    category: article.category || "OPINI",
-    title: article.title,
-    date: formatDate(
-      article.publishDate ||
-        article.publishedAt ||
-        article.createdAt
-    ),
-    read: estimateReadTime(article.content),
-    slug,
-    image: article.cover || fallbackCover,
-    status: article.status || "Draft",
-
-    /*
-     * Support beberapa kemungkinan nama field
-     * Featured dari halaman Admin.
-     */
-    featured:
-      article.featured === true ||
-      article.featured === "true" ||
-      article.isFeatured === true ||
-      article.isFeatured === "true" ||
-      article.featured === "Featured",
-  };
-}
-
-/* =========================================================
-   LOAD ARTICLES
-========================================================= */
-
-function loadHomepageArticles() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-
-    if (!raw) {
-      return fallbackArticles;
+  useEffect(() => {
+    if (!slug) {
+      setLoading(false);
+      return;
     }
 
-    const stored = JSON.parse(raw);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
 
-    if (!Array.isArray(stored)) {
-      return fallbackArticles;
-    }
+      if (!raw) {
+        setLoading(false);
+        return;
+      }
 
-    /*
-     * Ambil hanya artikel Published.
-     */
-    const published = stored
-      .map(normalizeArticle)
-      .filter(
-        (article) =>
-          article &&
-          String(article.status).toLowerCase() ===
+      const stored = JSON.parse(raw);
+
+      if (!Array.isArray(stored)) {
+        setLoading(false);
+        return;
+      }
+
+      const found = stored.find(
+        (item) =>
+          item &&
+          String(item.slug || "") === String(slug) &&
+          String(item.status || "").toLowerCase() ===
             "published"
       );
 
-    if (published.length === 0) {
-      return fallbackArticles;
+      setArticle(found || null);
+    } catch (error) {
+      console.error(
+        "Gagal membaca artikel:",
+        error
+      );
+
+      setArticle(null);
+    } finally {
+      setLoading(false);
     }
+  }, [slug]);
 
-    /*
-     * Urutkan terbaru.
-     */
-    const sorted = [...published].sort((a, b) => {
-      const sourceA = stored.find(
-        (item) =>
-          item &&
-          (item.id === a.id || item.slug === a.slug)
-      );
-
-      const sourceB = stored.find(
-        (item) =>
-          item &&
-          (item.id === b.id || item.slug === b.slug)
-      );
-
-      const dateA = new Date(
-        sourceA?.publishDate ||
-          sourceA?.publishedAt ||
-          sourceA?.createdAt ||
-          0
-      ).getTime();
-
-      const dateB = new Date(
-        sourceB?.publishDate ||
-          sourceB?.publishedAt ||
-          sourceB?.createdAt ||
-          0
-      ).getTime();
-
-      return dateB - dateA;
-    });
-
-    /*
-     * PRIORITAS 1:
-     * Kalau ada artikel Featured yang Published,
-     * tampilkan artikel Featured terbaru.
-     */
-    const featured = sorted.filter(
-      (article) => article.featured
-    );
-
-    if (featured.length > 0) {
-      return featured.slice(0, 3);
-    }
-
-    /*
-     * PRIORITAS 2:
-     * Kalau belum ada Featured,
-     * tampilkan Published terbaru.
-     */
-    return sorted.slice(0, 3);
-  } catch (error) {
-    console.error(
-      "Gagal membaca artikel homepage:",
-      error
-    );
-
-    return fallbackArticles;
-  }
-}
-
-/* =========================================================
-   HOME
-========================================================= */
-
-export default function Home() {
-  const [articles, setArticles] =
-    useState(fallbackArticles);
-
-  useEffect(() => {
-    /*
-     * Load pertama.
-     */
-    const refreshArticles = () => {
-      const result = loadHomepageArticles();
-      setArticles(result);
-    };
-
-    refreshArticles();
-
-    /*
-     * Kalau localStorage berubah dari tab/window lain.
-     */
-    window.addEventListener(
-      "storage",
-      refreshArticles
-    );
-
-    /*
-     * Custom event untuk perubahan dari aplikasi
-     * pada tab yang sama.
-     */
-    window.addEventListener(
-      "opini-updated",
-      refreshArticles
-    );
-
-    return () => {
-      window.removeEventListener(
-        "storage",
-        refreshArticles
-      );
-
-      window.removeEventListener(
-        "opini-updated",
-        refreshArticles
-      );
-    };
-  }, []);
-
-  return (
-    <main>
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
-      <header className="site-header">
-        <div className="brand">
-          <div className="brand-name">
-            YULIA HARTATI
-          </div>
-
-          <div className="brand-meta">
-            IDEAS · ANALYSIS · TOOLS · WORK
-          </div>
-        </div>
-
-        <nav className="main-nav">
-          <a className="active" href="#">
-            Home
-          </a>
-
-          <a href="#nri">NRI</a>
-
-          <a href="#opini">Opini</a>
-
-          <a href="#projects">Projects</a>
-
-          <a href="#social">Social Live</a>
-
-          <a href="#about">About</a>
-        </nav>
-
-        <div className="header-actions">
-          <button
-            type="button"
-            aria-label="Search"
-          >
-            <Search
-              size={16}
-              strokeWidth={1.5}
-            />
-
-            <span>Search...</span>
-          </button>
-
-          <button
-            type="button"
-            aria-label="Theme"
-          >
-            <Sun
-              size={16}
-              strokeWidth={1.5}
-            />
-          </button>
-        </div>
-      </header>
-
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
-      <section className="hero-section">
-        <div className="hero-copy">
-          <div className="eyebrow">
-            WELCOME TO MY DIGITAL SPACE
-          </div>
-
-          <h1>
-            Understand
-            <br />
-            the narrative.
-            <br />
-            <span>
-              See the bigger picture.
-            </span>
-          </h1>
-
-          <p>
-            Exploring the intersection of society,
-            technology, and human behavior through
-            analysis, writing, and tools that help us
-            think more clearly.
-          </p>
-
-          <div className="hero-actions">
-            <a
-              className="button button-primary"
-              href="#nri"
-            >
-              Explore NRI
-              <ArrowRight size={15} />
-            </a>
-
-            <a
-              className="button button-outline"
-              href="#opini"
-            >
-              Read Latest Article
-            </a>
-          </div>
-        </div>
-
+  if (loading) {
+    return (
+      <main
+        style={{
+          minHeight: "100vh",
+          background: "#f7f7f5",
+          color: "#171717",
+          padding: "80px 24px",
+          fontFamily:
+            "Arial, Helvetica, sans-serif",
+        }}
+      >
         <div
-          className="hero-visual"
           style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(5,10,13,.12), rgba(5,10,13,.05)), url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=85')",
+            maxWidth: 820,
+            margin: "0 auto",
+            color: "#777",
+            fontSize: 14,
           }}
         >
-          <div className="hero-quote">
-            <span>“</span>
-
-            <p>
-              Dunia tidak lagi
-              <br />
-              diperintah senjata.
-              <br />
-              Tetapi narasi.
-            </p>
-
-            <i />
-          </div>
+          Memuat artikel...
         </div>
-      </section>
+      </main>
+    );
+  }
 
-      {/* =====================================================
-          FOUR AREAS
-      ===================================================== */}
-
-      <section
-        id="nri"
-        className="areas-section"
+  if (!article) {
+    return (
+      <main
+        style={{
+          minHeight: "100vh",
+          background: "#f7f7f5",
+          color: "#171717",
+          padding: "80px 24px",
+          fontFamily:
+            "Arial, Helvetica, sans-serif",
+        }}
       >
-        <div className="areas-grid">
-          {areas.map((area) => {
-            const Icon = area.icon;
-
-            return (
-              <a
-                key={area.number}
-                href={area.href}
-                className="area-card"
-                style={{
-                  backgroundImage: `linear-gradient(90deg, rgba(7,11,14,.96) 0%, rgba(7,11,14,.82) 58%, rgba(7,11,14,.38) 100%), url('${area.image}')`,
-                }}
-              >
-                <div className="area-number">
-                  {area.number}
-                </div>
-
-                <div className="area-icon">
-                  <Icon
-                    size={22}
-                    strokeWidth={1.35}
-                  />
-                </div>
-
-                <div className="area-content">
-                  <h2>{area.title}</h2>
-
-                  <div className="area-subtitle">
-                    {area.subtitle}
-                  </div>
-
-                  <p>{area.text}</p>
-
-                  <span className="area-link">
-                    {area.link}
-                    <ArrowRight size={13} />
-                  </span>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* =====================================================
-          FEATURED ARTICLES
-      ===================================================== */}
-
-      <section
-        id="opini"
-        className="articles-section"
-      >
-        <div className="section-heading">
-          <div>
-            <div className="eyebrow">
-              FEATURED
-            </div>
-
-            <h2>Artikel Terbaru</h2>
-
-            <p>
-              Pemikiran tentang isu penting,
-              manusia, teknologi, dan masa depan.
-            </p>
-          </div>
-
-          <a
-            href="/opini"
-            className="section-link"
-          >
-            Lihat semua artikel
-            <ArrowRight size={13} />
-          </a>
-        </div>
-
-        <div className="articles-grid">
-          {articles.map((article) => {
-            const validSlug =
-              article.slug &&
-              article.slug !== "#";
-
-            if (validSlug) {
-              return (
-                <a
-                  key={article.id || article.slug}
-                  href={`/opini/${article.slug}`}
-                  className="article-card"
-                  style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                  }}
-                >
-                  <ArticleCardContent
-                    article={article}
-                  />
-                </a>
-              );
-            }
-
-            return (
-              <article
-                key={article.id || article.title}
-                className="article-card"
-              >
-                <ArticleCardContent
-                  article={article}
-                />
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* =====================================================
-          PROJECTS
-      ===================================================== */}
-
-      <section
-        id="projects"
-        className="projects-section"
-      >
-        <div className="section-heading">
-          <div>
-            <div className="eyebrow">
-              PROJECTS
-            </div>
-
-            <h2>
-              Things being built.
-            </h2>
-
-            <p>
-              Tools, experiments, and systems
-              in development.
-            </p>
-          </div>
-
-          <a
-            href="#projects"
-            className="section-link"
-          >
-            Lihat semua
-            <ArrowRight size={13} />
-          </a>
-        </div>
-
-        <div className="projects-list">
-          {projects.map((project) => (
-            <a
-              href="#projects"
-              className="project-row"
-              key={project.number}
-            >
-              <span className="project-number">
-                {project.number}
-              </span>
-
-              <div>
-                <h3>{project.title}</h3>
-
-                <p>
-                  {project.description}
-                </p>
-              </div>
-
-              <ArrowRight size={14} />
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* =====================================================
-          SOCIAL LIVE
-      ===================================================== */}
-
-      <section
-        id="social"
-        className="social-section"
-      >
-        <div className="eyebrow">
-          04 / SOCIAL LIVE
-        </div>
-
-        <h2>
-          Ideas don&apos;t stop
-          <br />
-          at the website.
-        </h2>
-
-        <p>
-          A live layer connecting the ecosystem
-          with ongoing conversations, publications,
-          and activity across social platforms.
-        </p>
-
-        <a
-          href="#social"
-          className="button button-outline"
+        <div
+          style={{
+            maxWidth: 820,
+            margin: "0 auto",
+          }}
         >
-          Lihat Social Live
-          <ArrowRight size={14} />
-        </a>
-      </section>
-
-      {/* =====================================================
-          ABOUT
-      ===================================================== */}
-
-      <section
-        id="about"
-        className="about-section"
-      >
-        <div className="eyebrow">
-          ABOUT
-        </div>
-
-        <div className="about-grid">
-          <h2>
-            Yulia
-            <br />
-            Hartati.
-          </h2>
-
-          <div className="about-copy">
-            <p>
-              Writing, analysis, experimentation,
-              and building tools around one
-              recurring question:
-            </p>
-
-            <strong>
-              how do we understand what we
-              are seeing?
-            </strong>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          FOOTER
-      ===================================================== */}
-
-      <footer className="site-footer">
-        <div className="footer-quote">
-          “Lebih banyak pertanyaan,
-          <br />
-          lebih sedikit kepastian,
-          <br />
-          dunia akan jadi tempat
-          <br />
-          yang lebih baik.”
-        </div>
-
-        <div className="footer-column">
-          <div className="footer-label">
-            QUICK LINKS
-          </div>
-
-          <a href="#nri">NRI</a>
-          <a href="#opini">Opini</a>
-          <a href="#projects">
-            Projects
+          <a
+            href="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              color: "#666",
+              textDecoration: "none",
+              fontSize: 13,
+              marginBottom: 40,
+            }}
+          >
+            <ArrowLeft size={14} />
+            Kembali ke Home
           </a>
-          <a href="#social">
-            Social Live
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 36,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Artikel tidak ditemukan
+          </h1>
+
+          <p
+            style={{
+              marginTop: 14,
+              color: "#777",
+              lineHeight: 1.7,
+            }}
+          >
+            Artikel mungkin belum dipublish atau
+            slug artikel tidak ditemukan.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#f7f7f5",
+        color: "#171717",
+        fontFamily:
+          "Arial, Helvetica, sans-serif",
+      }}
+    >
+      <article>
+        {/* HEADER */}
+        <header
+          style={{
+            maxWidth: 820,
+            margin: "0 auto",
+            padding: "50px 24px 30px",
+          }}
+        >
+          <a
+            href="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              color: "#777",
+              textDecoration: "none",
+              fontSize: 13,
+              marginBottom: 42,
+            }}
+          >
+            <ArrowLeft size={14} />
+            Kembali
           </a>
-          <a href="#about">About</a>
-        </div>
 
-        <div className="footer-column">
-          <div className="footer-label">
-            STAY CONNECTED
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: "#999",
+              marginBottom: 14,
+            }}
+          >
+            {article.category || "OPINI"}
           </div>
 
-          <div className="social-icons">
-            <span>YouTube</span>
-            <span>X</span>
-            <span>Instagram</span>
-            <span>TikTok</span>
-            <span>LinkedIn</span>
-          </div>
+          <h1
+            style={{
+              margin: 0,
+              fontSize:
+                "clamp(36px, 6vw, 64px)",
+              lineHeight: 1.05,
+              fontWeight: 500,
+              letterSpacing: "-0.04em",
+            }}
+          >
+            {article.title}
+          </h1>
 
-          <div className="newsletter">
-            <p>
-              Dapatkan update artikel dan proyek
-              terbaru.
+          {article.excerpt && (
+            <p
+              style={{
+                margin:
+                  "24px 0 0",
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#666",
+                maxWidth: 720,
+              }}
+            >
+              {article.excerpt}
             </p>
+          )}
 
-            <div className="newsletter-input">
-              <span>
-                Masukkan email Anda
-              </span>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              marginTop: 24,
+              color: "#999",
+              fontSize: 12,
+            }}
+          >
+            <span>
+              {formatDate(
+                article.publishDate
+              )}
+            </span>
 
-              <ArrowRight size={14} />
-            </div>
+            <span>·</span>
+
+            <span>
+              {estimateReadTime(
+                article.content
+              )}
+            </span>
+          </div>
+        </header>
+
+        {/* COVER */}
+        {article.cover && (
+          <div
+            style={{
+              maxWidth: 1200,
+              margin: "20px auto 0",
+              padding: "0 24px",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                aspectRatio: "16 / 8",
+                borderRadius: 8,
+                overflow: "hidden",
+                backgroundImage: `url('${article.cover}')`,
+                backgroundSize: "cover",
+                backgroundPosition:
+                  "center",
+              }}
+            />
+          </div>
+        )}
+
+        {/* CONTENT */}
+        <div
+          style={{
+            maxWidth: 760,
+            margin: "60px auto 100px",
+            padding: "0 24px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 17,
+              lineHeight: 1.9,
+              color: "#292929",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {article.content}
           </div>
         </div>
-
-        <div className="footer-bottom">
-          <span>
-            YULIA HARTATI
-          </span>
-
-          <span>
-            © 2026 yuliahartati.com.
-            All rights reserved.
-          </span>
-
-          <div>
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Contact</a>
-          </div>
-        </div>
-      </footer>
+      </article>
     </main>
   );
 }
-
-/* =========================================================
-   ARTICLE CARD
-========================================================= */
-
-function ArticleCardContent({
-  article,
-}) {
-  return (
-    <>
-      <div
-        className="article-image"
-        style={{
-          backgroundImage: `url('${article.image}')`,
-        }}
-      />
-
-      <div className="article-body">
-        <div className="article-category">
-          {article.category}
-        </div>
-
-        <h3>
-          {article.title}
-        </h3>
-
-        <div className="article-meta">
-          <span>
-            {article.date}
-          </span>
-
-          <span>·</span>
-
-          <span>
-            {article.read}
-          </span>
-        </div>
-      </div>
-    </>
-  );
-}
-
-/* =========================================================
-   HELPERS
-========================================================= */
 
 function formatDate(value) {
   if (!value) {
@@ -830,10 +330,8 @@ function estimateReadTime(content) {
     .split(/\s+/)
     .filter(Boolean).length;
 
-  const minutes = Math.max(
+  return `${Math.max(
     1,
     Math.ceil(words / 200)
-  );
-
-  return `${minutes} min read`;
-      }
+  )} min read`;
+              }
